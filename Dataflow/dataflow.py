@@ -1,6 +1,4 @@
-# Copyright 2017 Google
-# Source https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/dataflow-python-examples/dataflow_python_examples/data_ingestion.py#L107-L113
-#
+# Copyright 2019 Ismael Yuste
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,15 +30,17 @@ from apache_beam.options.pipeline_options import PipelineOptions
 # end_station_longitude,bikeid,usertype,birth_year,gender,customer_plan)
 # and drop it data table at BQ
 
-GCS_TO_PROCESS ='gs://ucm-data-landing/bikeshare.csv'
+GCS_TO_PROCESS = 'gs://<bucket_name>/bikeshare.csv'
 BQ_OUTPUT = 'sfo.bikeshare'
-PROJECT = 'ucm-cloud' #Project ID
-DF_STAGING = 'gs://ucm-data-landing/staging'
-DF_TEMP = 'gs://ucm-data-landing/temp'
+PROJECT = '<Project_id>'  # Project ID
+DF_STAGING = 'gs://<bucket_name>/staging'
+DF_TEMP = 'gs://<bucket_name>/temp'
 DF_JOB_NAME = 'sfo-load-dayly-data'
-DF_REGION = 'europe-west1'
+DF_REGION = 'europe-west1'  # Your Preferred region
 
-#This helper class contains the logic to translate the file rows to BQ
+# This helper class contains the logic to translate the file rows to BQ
+
+
 class DataIngestion:
 
     def parse_method(self, string_input):
@@ -52,22 +52,17 @@ class DataIngestion:
             the origin file
 
         Returns:
-            A dict mapping BigQuery column names as keys to the corresponding value
-            parsed from string_input.  In this example, the data is not transformed, and
-            remains in the same format as the CSV.  There are no date format transformations.
-            example output:
-              {'variable': 'OOVI313',
-               'start_timestamp': '2018-11-28 00:00:00',
-               'end_timestamp': '2018-11-28 01:00:00',
-               'value': 'Dorothy'
-               }
+            A dict mapping BigQuery column names as keys to the corresponding
+            value parsed from string_input.  In this example, the data is not
+            transformed, and remains in the same format as the CSV.
+            There are no date format transformations.
          """
         # Strip out return characters and quote characters.
         values = re.split(",",
                           re.sub('\r\n', '', re.sub(u'"', '', string_input)))
 
-        row = dict( zip(('station_id','bikes_available','docks_available','time'),
-                values))
+        # Maps 4 fields from the sfo citibyke dataset
+        row = dict(zip(('station_id', 'bikes_available', 'docks_available', 'time'), values))
 
         return row
 
@@ -102,6 +97,7 @@ def run(argv=None):
         '---save_main_session=true',
     ])
 
+    # Maps 4 fields from the sfo citibyke dataset
     schema = ('station_id:INTEGER,bikes_available:INTEGER,docks_available:INTEGER,time:TIMESTAMP')
 
     # DataIngestion is a class we built in this script to hold the logic for
@@ -128,6 +124,7 @@ def run(argv=None):
             # Appends data to the table.
             write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND)))
     p.run().wait_until_finish()
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
